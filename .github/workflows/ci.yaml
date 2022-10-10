@@ -1,0 +1,65 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+  schedule: [cron: "40 1 * * *"]
+
+jobs:
+
+  unittest:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - toolchain: "stable"
+          - toolchain: "nightly"
+
+    steps:
+      - name: Setup | Checkout
+        uses: actions/checkout@v2
+
+
+      - name: Setup | Toolchain
+        uses: actions-rs/toolchain@v1.0.6
+        with:
+          toolchain: "${{ matrix.toolchain }}"
+          override: true
+          components: rustfmt, clippy
+
+
+      - name: Unit Tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+        env:
+          RUST_BACKTRACE: full
+
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1.0.6
+        with:
+          components: rustfmt, clippy
+
+      - name: Format
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+
+      - name: Clippy
+        shell: bash
+        run: cargo -Zgitoxide=fetch,shallow-index,shallow-deps clippy --all-targets --all-features -- -D warnings
+
+
+      - name: Build-doc
+        uses: actions-rs/cargo@v1
+        with:
+          command: doc
+          args: --all --no-deps
