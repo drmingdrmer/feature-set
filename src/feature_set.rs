@@ -20,11 +20,27 @@ impl FeatureSet {
             match a {
                 Action::Add(p) => {
                     let feature = p.feature();
-                    features.insert((feature.name(), feature.ver()), feature.clone());
+                    let key = (feature.name(), feature.ver());
+
+                    assert!(
+                        !features.contains_key(&key),
+                        "duplicate feature: {:?}",
+                        feature
+                    );
+
+                    features.insert(key, feature.clone());
                 }
                 Action::Delete(p) => {
                     let feature = p.feature();
-                    features.remove(&(feature.name(), feature.ver()));
+                    let key = (feature.name(), feature.ver());
+
+                    assert!(
+                        features.contains_key(&key),
+                        "feature not found: {:?}",
+                        feature
+                    );
+
+                    features.remove(&key);
                 }
             }
         }
@@ -47,11 +63,28 @@ impl FeatureSet {
                     if !include_optional && p.optional() {
                         continue;
                     }
+
                     let feature = p.feature();
-                    features.insert((feature.name(), feature.ver()), feature.clone());
+                    let key = (feature.name(), feature.ver());
+
+                    assert!(
+                        !features.contains_key(&key),
+                        "duplicate feature: {:?}",
+                        feature
+                    );
+
+                    features.insert(key, feature.clone());
                 }
                 Action::Delete(p) => {
                     let feature = p.feature();
+                    let key = (feature.name(), feature.ver());
+
+                    assert!(
+                        features.contains_key(&key),
+                        "feature not found: {:?}",
+                        feature
+                    );
+
                     features.remove(&(feature.name(), feature.ver()));
                 }
             }

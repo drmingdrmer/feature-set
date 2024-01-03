@@ -23,6 +23,16 @@ fn test_provide() {
     assert_eq!("bar:v1, baz:v1, foo:v0, qux:v1", fs.to_string());
 }
 
+#[test]
+fn test_dup_provide() {
+    const DUP_PROVIDED: &[Action<Provide>] = &[
+        add_provide(("foo", 0), "2012-02-21", (1, 2, 3)),
+        add_provide(("foo", 0), "2012-02-22", (1, 2, 4)),
+    ];
+
+    assert!(std::panic::catch_unwind(|| FeatureSet::from_provides(DUP_PROVIDED)).is_err());
+}
+
 const REQUIRED: &[Action<Require>] = &[
     add_require(("foo", 0), "2012-02-21", (1, 2, 3)),
     add_require(("bar", 0), "2012-02-21", (1, 2, 3)),
@@ -37,4 +47,14 @@ fn test_require() {
 
     let fs = FeatureSet::from_required(REQUIRED, true);
     assert_eq!("bar:v1, foo:v0", fs.to_string());
+}
+
+#[test]
+fn test_dup_require() {
+    const DUP_REQUIRED: &[Action<Require>] = &[
+        add_require(("foo", 0), "2012-02-21", (1, 2, 3)),
+        add_require(("foo", 0), "2012-02-22", (1, 2, 4)),
+    ];
+
+    assert!(std::panic::catch_unwind(|| FeatureSet::from_required(DUP_REQUIRED, false)).is_err());
 }
